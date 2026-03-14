@@ -13,7 +13,7 @@ from typing import List
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
 
 
@@ -68,10 +68,9 @@ def ingest_pdfs(uploaded_files, chunk_size: int = 1000, chunk_overlap: int = 200
 
     # ── Embed and store in FAISS ─────────────────────────────────────────────
     # OpenAIEmbeddings calls text-embedding-ada-002 (cheap and accurate)
-    embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-small",  # newest, cheaper, better than ada-002
-        openai_api_key=os.getenv("OPENAI_API_KEY"),
-    )
+    embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-2-preview")
+    vector = embeddings.embed_query("hello, world!")
+    vector[:5]
 
     vectorstore = FAISS.from_documents(chunks, embeddings)
     return vectorstore
@@ -84,8 +83,7 @@ def save_vectorstore(vectorstore: FAISS, path: str = "faiss_index") -> None:
 
 def load_vectorstore(path: str = "faiss_index") -> FAISS:
     """Load a previously saved FAISS index from disk."""
-    embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-small",
-        openai_api_key=os.getenv("OPENAI_API_KEY"),
-    )
+    embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-2-preview")
+    vector = embeddings.embed_query("hello, world!")
+    vector[:5]
     return FAISS.load_local(path, embeddings, allow_dangerous_deserialization=True)

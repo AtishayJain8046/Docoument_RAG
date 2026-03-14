@@ -270,7 +270,7 @@ with st.sidebar:
     st.markdown('<div class="sidebar-section">Settings</div>', unsafe_allow_html=True)
     model = st.selectbox(
         "LLM Model",
-        ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"],
+        ["gemini-2.5-flash"],
         label_visibility="collapsed",
     )
     top_k = st.slider("Source chunks (k)", 2, 8, 4)

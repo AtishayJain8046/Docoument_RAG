@@ -11,7 +11,7 @@ Built entirely from langchain_core runnables — no deprecated langchain.chains 
 import os
 from typing import List, Tuple
 
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
@@ -56,7 +56,7 @@ def format_docs(docs: List[Document]) -> str:
     )
 
 
-def build_chain(retriever: VectorStoreRetriever, model_name: str = "gpt-4o-mini"):
+def build_chain(retriever: VectorStoreRetriever, model_name: str = "gemini-2.5-flash"):
     """
     Constructs the full conversational RAG chain using pure langchain_core runnables.
 
@@ -65,10 +65,10 @@ def build_chain(retriever: VectorStoreRetriever, model_name: str = "gpt-4o-mini"
     And returns:
         {"answer": "...", "context": [Document, ...]}
     """
-    llm = ChatOpenAI(
+    llm = GoogleGenerativeAI(
         model=model_name,
         temperature=0,
-        openai_api_key=os.getenv("OPENAI_API_KEY"),
+        google_api_key=os.getenv("GOOGLE_API_KEY"),
     )
 
     # Step 1: Rewrite the question to be standalone (handles follow-ups)
