@@ -61,7 +61,7 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+# Edit .env and add your API_KEY
 ```
 
 ### 3. Run
@@ -78,7 +78,7 @@ Open http://localhost:8501 in your browser.
 
 | Variable | Required | Description |
 |---|---|---|
-| `OPENAI_API_KEY` | ✅ Yes | From https://platform.openai.com/api-keys |
+| ` ANY API KEY ` | ✅ Yes | api-keys |
 | `LANGCHAIN_TRACING_V2` | ❌ No | Set `true` to enable LangSmith debugging |
 | `LANGCHAIN_API_KEY` | ❌ No | LangSmith key (free) for tracing |
 
@@ -106,11 +106,6 @@ Splits by paragraph → sentence → word in order, keeping semantically coheren
 ### Why `history_aware_retriever`?
 Without it, follow-up questions like "What did it say about that?" lose context. This component reformulates the question using chat history before retrieval.
 
-### Model choices
-- **Embedding**: `text-embedding-3-small` — OpenAI's newest, cheapest, most accurate embedding model
-- **LLM**: `gpt-4o-mini` default — great quality/cost tradeoff; switchable in UI
-
----
 
 ## 📈 Resume Talking Points
 
@@ -137,7 +132,7 @@ Ideas to make it even more impressive:
 ## 📦 Dependencies
 
 - `streamlit` — UI framework
-- `langchain` + `langchain-openai` — LLM orchestration
+- `langchain` + `langchain_google_genai` — LLM orchestration
 - `faiss-cpu` — vector similarity search
 - `pypdf` — PDF text extraction
 - `python-dotenv` — environment variable management
