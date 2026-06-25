@@ -24,15 +24,15 @@ Tracking the evolution from a basic RAG demo into a measurable, deployable, agen
 - [x] Ingestion: richer metadata (chunk index), split into testable functions
 - [x] Chain reads model ids from config
 
-## Phase 2 — Qdrant vector store
-- [ ] Qdrant client + collection-per-document-set
-- [ ] Persistence (survives restarts), metadata filtering
-- [ ] `docker-compose` with Qdrant service
+## Phase 2 — Qdrant vector store ✅ DONE
+- [x] Qdrant store with embedded (no-Docker) + server modes
+- [x] `docker-compose` with Qdrant service
+- [ ] Persistence wired into UI / metadata filtering (revisit in API phase)
 
-## Phase 3 — Retrieval quality
-- [ ] Hybrid search: BM25 (keyword) + dense (Ensemble)
-- [ ] BGE cross-encoder reranker after retrieval
-- [ ] Inline citations mapped to claims ([1][2])
+## Phase 3 — Retrieval quality ✅ (citations pending)
+- [x] Hybrid search: BM25 (keyword) + dense (Ensemble) — verified
+- [x] Cross-encoder reranker (default MiniLM ~90MB; BGE optional) — verified
+- [ ] Inline citations mapped to claims ([1][2]) — do alongside API/UI phase
 
 ## Phase 4 — Evaluation harness ⭐ key differentiator
 - [ ] Eval dataset (Q/A over sample docs)
