@@ -1,11 +1,36 @@
-streamlit>=1.32.0
-langchain>=0.2.0
-langchain-openai>=0.1.0
-langchain-community>=0.2.0
-langchain-core>=0.2.0
-langchain-text-splitters>=0.2.0
-faiss-cpu>=1.7.4
-pypdf>=4.0.0
-python-dotenv>=1.0.0
-openai>=1.20.0
-tiktoken>=0.7.0
+# ── Core orchestration ────────────────────────────────────────────────
+langchain>=1.0
+langchain-core>=1.0
+langchain-community>=0.4
+langchain-text-splitters>=1.0
+
+# ── LLM + embeddings (Google Gemini) ──────────────────────────────────
+langchain-google-genai>=4.0
+google-genai>=1.6
+
+# ── Vector store ──────────────────────────────────────────────────────
+qdrant-client>=1.14
+langchain-qdrant>=0.2
+
+# ── Retrieval quality: hybrid + reranking ─────────────────────────────
+rank-bm25>=0.2.2
+sentence-transformers>=3.0          # local BGE cross-encoder reranker
+
+# ── PDF / ingestion ───────────────────────────────────────────────────
+pypdf>=4.0
+pymupdf>=1.24                        # page rendering for the multimodal path
+
+# ── API + UI ──────────────────────────────────────────────────────────
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sse-starlette>=2.1
+streamlit>=1.55
+
+# ── Config / infra ────────────────────────────────────────────────────
+pydantic>=2.10
+pydantic-settings>=2.6
+python-dotenv>=1.0
+
+# ── Evaluation (Phase 4) ──────────────────────────────────────────────
+ragas>=0.2
+datasets>=3.0
