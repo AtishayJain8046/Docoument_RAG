@@ -35,9 +35,13 @@ Tracking the evolution from a basic RAG demo into a measurable, deployable, agen
 - [ ] Inline citations mapped to claims ([1][2]) — do alongside API/UI phase
 
 ## Phase 4 — Evaluation harness ⭐ key differentiator
-- [ ] Eval dataset (Q/A over sample docs)
-- [ ] RAGAS metrics: faithfulness, answer relevance, context precision/recall
-- [ ] Before/after retrieval-quality table in README
+- [x] Eval dataset (synthetic gold Q/A — `eval/sample_corpus.py`)
+- [x] RAGAS harness: faithfulness, answer relevance, context precision/recall
+- [x] Baseline-vs-improved comparison runner (`eval/run_eval.py`)
+- [ ] **BLOCKED: run it** — Gemini free tier caps at 20 requests/day/model;
+      a full run needs ~40–60 calls. Needs a billed key (or daily-reset +
+      tiny EVAL_SAMPLE_LIMIT). Harness is ready; produces `eval/results.md`.
+- [ ] Before/after table in README (after results.md is generated)
 
 ## Phase 5 — API layer
 - [ ] FastAPI service: `/ingest`, `/chat`, `/health`

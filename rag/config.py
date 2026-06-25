@@ -33,6 +33,12 @@ class Settings(BaseSettings):
         "models/gemini-embedding-001", alias="EMBEDDING_MODEL"
     )
     llm_temperature: float = Field(0.0, alias="LLM_TEMPERATURE")
+    # Model the eval harness uses for BOTH answering and judging. Defaults
+    # to flash-lite: higher free-tier limits and a separate daily quota from
+    # the app's flash model, so running eval doesn't exhaust the app budget.
+    eval_judge_model: str = Field("gemini-2.5-flash-lite", alias="EVAL_JUDGE_MODEL")
+    # Cap eval questions to fit within free-tier daily quotas (None = all).
+    eval_sample_limit: int | None = Field(None, alias="EVAL_SAMPLE_LIMIT")
 
     # ── Chunking ──────────────────────────────────────────────────────
     chunk_size: int = Field(1000, alias="CHUNK_SIZE")
