@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     chunk_overlap: int = Field(200, alias="CHUNK_OVERLAP")
 
     # ── Vector store (Qdrant) ─────────────────────────────────────────
+    # Embedded (in-process) mode needs no Docker — used for tests/offline.
+    # Set QDRANT_EMBEDDED=false to talk to a Qdrant server at QDRANT_URL.
+    qdrant_embedded: bool = Field(True, alias="QDRANT_EMBEDDED")
     qdrant_url: str = Field("http://localhost:6333", alias="QDRANT_URL")
     qdrant_api_key: str = Field("", alias="QDRANT_API_KEY")
     qdrant_collection: str = Field("pdf_chunks", alias="QDRANT_COLLECTION")
@@ -48,9 +51,14 @@ class Settings(BaseSettings):
     # candidates pulled before reranking (wider net → reranker picks best)
     retrieval_fetch_k: int = Field(20, alias="RETRIEVAL_FETCH_K")
     rerank_top_n: int = Field(4, alias="RERANK_TOP_N")
+    # Lightweight (~90MB) cross-encoder — fast, CPU-friendly, clone/deploy
+    # friendly. Swap to "BAAI/bge-reranker-base" (~1.1GB) for higher quality.
     reranker_model: str = Field(
-        "BAAI/bge-reranker-base", alias="RERANKER_MODEL"
+        "cross-encoder/ms-marco-MiniLM-L-6-v2", alias="RERANKER_MODEL"
     )
+    use_reranker: bool = Field(True, alias="USE_RERANKER")
+    # Ensemble weight for dense (vs BM25) in hybrid search; 0..1.
+    hybrid_dense_weight: float = Field(0.5, alias="HYBRID_DENSE_WEIGHT")
 
     @property
     def has_api_key(self) -> bool:
