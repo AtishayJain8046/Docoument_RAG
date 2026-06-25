@@ -8,15 +8,15 @@ RAG pipeline step: Query + History → Retriever → LLM → Answer
 Built entirely from langchain_core runnables — no deprecated langchain.chains needed.
 """
 
-import os
-from typing import List, Tuple
+from typing import List
 
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
+
+from rag.config import settings
 
 
 # ── Prompts ───────────────────────────────────────────────────────────────────
@@ -56,7 +56,7 @@ def format_docs(docs: List[Document]) -> str:
     )
 
 
-def build_chain(retriever: VectorStoreRetriever, model_name: str = "gemini-2.5-flash"):
+def build_chain(retriever, model_name: str | None = None):
     """
     Constructs the full conversational RAG chain using pure langchain_core runnables.
 
@@ -66,9 +66,9 @@ def build_chain(retriever: VectorStoreRetriever, model_name: str = "gemini-2.5-f
         {"answer": "...", "context": [Document, ...]}
     """
     llm = GoogleGenerativeAI(
-        model=model_name,
-        temperature=0,
-        google_api_key=os.getenv("GOOGLE_API_KEY"),
+        model=model_name or settings.llm_model,
+        temperature=settings.llm_temperature,
+        google_api_key=settings.google_api_key or None,
     )
 
     # Step 1: Rewrite the question to be standalone (handles follow-ups)
