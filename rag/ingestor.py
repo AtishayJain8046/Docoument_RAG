@@ -55,12 +55,11 @@ def split_documents(docs: List[Document]) -> List[Document]:
     return chunks
 
 
-def ingest_pdfs(uploaded_files) -> FAISS:
+def pdfs_to_chunks(uploaded_files) -> List[Document]:
     """
     Takes Streamlit UploadedFile objects → temp files → loaded pages →
-    chunks → FAISS index.
-
-    Returns a FAISS vectorstore populated with embedded chunks.
+    chunks. This is the store-agnostic part of ingestion; both the Qdrant
+    and the legacy FAISS paths build on it, and BM25 indexes the chunks too.
     """
     all_docs: List[Document] = []
 
@@ -79,8 +78,12 @@ def ingest_pdfs(uploaded_files) -> FAISS:
     chunks = split_documents(all_docs)
     if not chunks:
         raise ValueError("Text splitting produced no chunks. Check your PDF content.")
+    return chunks
 
-    return FAISS.from_documents(chunks, get_embeddings())
+
+def ingest_pdfs(uploaded_files) -> FAISS:
+    """Legacy FAISS path — kept for tests/fallback. Returns a FAISS store."""
+    return FAISS.from_documents(pdfs_to_chunks(uploaded_files), get_embeddings())
 
 
 def save_vectorstore(vectorstore: FAISS, path: str = "faiss_index") -> None:

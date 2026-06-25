@@ -3,9 +3,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-from rag.ingestor import ingest_pdfs
-from rag.retriever import get_retriever
-from rag.chain import build_chain
+from rag.pipeline import ingest, make_chain
 
 load_dotenv()
 
@@ -213,8 +211,8 @@ hr {
 # ── Session state ─────────────────────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "vectorstore" not in st.session_state:
-    st.session_state.vectorstore = None
+if "index" not in st.session_state:
+    st.session_state.index = None
 if "ingested_files" not in st.session_state:
     st.session_state.ingested_files = []
 if "chain" not in st.session_state:
@@ -242,19 +240,17 @@ with st.sidebar:
 
     if clear_btn:
         st.session_state.messages = []
-        st.session_state.vectorstore = None
+        st.session_state.index = None
         st.session_state.ingested_files = []
         st.session_state.chain = None
         st.rerun()
 
     if ingest_btn and uploaded_files:
-        with st.spinner("Chunking & embedding PDFs…"):
+        with st.spinner("Chunking, embedding & indexing PDFs…"):
             try:
-                vs = ingest_pdfs(uploaded_files)
-                st.session_state.vectorstore = vs
+                st.session_state.index = ingest(uploaded_files)
                 st.session_state.ingested_files = [f.name for f in uploaded_files]
-                retriever = get_retriever(vs)
-                st.session_state.chain = build_chain(retriever)
+                st.session_state.chain = make_chain(st.session_state.index)
                 st.success(f"✓ {len(uploaded_files)} file(s) indexed")
             except Exception as e:
                 st.error(f"Ingestion failed: {e}")
@@ -328,9 +324,8 @@ if submitted and user_input.strip():
     if st.session_state.chain is None:
         st.warning("⚠️ Please upload and ingest PDFs first.")
     else:
-        # Rebuild chain with current settings if changed
-        retriever = get_retriever(st.session_state.vectorstore, k=top_k)
-        chain = build_chain(retriever, model_name=model)
+        # Rebuild chain so the current top-k slider takes effect.
+        chain = make_chain(st.session_state.index, k=top_k)
 
         st.session_state.messages.append({"role": "user", "content": user_input})
 
