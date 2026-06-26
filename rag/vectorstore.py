@@ -36,11 +36,16 @@ def _connection_kwargs() -> dict:
     }
 
 
-def build_vectorstore(chunks: List[Document]) -> QdrantVectorStore:
-    """Embed `chunks` and index them into a fresh Qdrant collection."""
+def build_vectorstore(chunks: List[Document], embedding=None) -> QdrantVectorStore:
+    """Embed `chunks` and index them into a fresh Qdrant collection.
+
+    `embedding` defaults to the configured Gemini model; pass a different
+    embedder (e.g. a local model) to compare retrieval quality across
+    embedders in the eval harness.
+    """
     return QdrantVectorStore.from_documents(
         documents=chunks,
-        embedding=get_embeddings(),
+        embedding=embedding or get_embeddings(),
         collection_name=settings.qdrant_collection,
         force_recreate=True,
         **_connection_kwargs(),

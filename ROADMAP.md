@@ -38,10 +38,14 @@ Tracking the evolution from a basic RAG demo into a measurable, deployable, agen
 - [x] Eval dataset (synthetic gold Q/A — `eval/sample_corpus.py`)
 - [x] RAGAS harness: faithfulness, answer relevance, context precision/recall
 - [x] Baseline-vs-improved comparison runner (`eval/run_eval.py`)
-- [ ] **BLOCKED: run it** — Gemini free tier caps at 20 requests/day/model;
-      a full run needs ~40–60 calls. Needs a billed key (or daily-reset +
-      tiny EVAL_SAMPLE_LIMIT). Harness is ready; produces `eval/results.md`.
-- [ ] Before/after table in README (after results.md is generated)
+- [x] **Quota-free retrieval eval** (`eval/retrieval_eval.py`) — runs now
+      (embeddings + local only). Two-embedder experiment: honest finding that
+      hybrid+rerank recovers ranking quality for a weak/cheap embedder
+      (MRR 0.923→0.962) while a strong embedder needs no extra machinery.
+      See `eval/retrieval_results.md`.
+- [ ] **RAGAS generation eval** — blocked on Gemini free-tier daily cap
+      (20 req/day/model); run when quota resets or with a billed key.
+- [ ] Before/after tables in README (retrieval table ready; add RAGAS later)
 
 ## Phase 5 — API layer
 - [ ] FastAPI service: `/ingest`, `/chat`, `/health`
