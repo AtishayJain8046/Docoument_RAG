@@ -18,8 +18,6 @@ with a cross-encoder for sharper ordering than either retriever alone.
 
 from __future__ import annotations
 
-from typing import List
-
 from langchain_classic.retrievers import (
     ContextualCompressionRetriever,
     EnsembleRetriever,
@@ -40,7 +38,7 @@ def get_dense_retriever(vectorstore, k: int | None = None) -> BaseRetriever:
 
 
 def get_hybrid_retriever(
-    vectorstore, chunks: List[Document], k: int | None = None
+    vectorstore, chunks: list[Document], k: int | None = None
 ) -> BaseRetriever:
     """Ensemble of dense (Qdrant) + sparse (BM25) retrievers."""
     fetch_k = k or settings.retrieval_fetch_k
@@ -75,7 +73,7 @@ def _wrap_with_reranker(base: BaseRetriever) -> BaseRetriever:
 
 
 def build_retriever(
-    vectorstore, chunks: List[Document], k: int | None = None
+    vectorstore, chunks: list[Document], k: int | None = None
 ) -> BaseRetriever:
     """Full retrieval stack: hybrid search, optionally reranked.
 

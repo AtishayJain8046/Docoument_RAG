@@ -78,7 +78,7 @@ async def ingest(files: list[UploadFile] = File(...)) -> IngestResponse:
     try:
         index = ingest_files(pdfs)
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
     index_id = uuid.uuid4().hex[:12]
     _INDEXES[index_id] = index

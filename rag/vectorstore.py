@@ -15,8 +15,6 @@ needs no manual schema changes.
 
 from __future__ import annotations
 
-from typing import List
-
 from langchain_core.documents import Document
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
@@ -36,7 +34,7 @@ def _connection_kwargs() -> dict:
     }
 
 
-def build_vectorstore(chunks: List[Document], embedding=None) -> QdrantVectorStore:
+def build_vectorstore(chunks: list[Document], embedding=None) -> QdrantVectorStore:
     """Embed `chunks` and index them into a fresh Qdrant collection.
 
     `embedding` defaults to the configured Gemini model; pass a different

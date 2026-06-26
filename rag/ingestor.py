@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import os
 import tempfile
-from typing import List
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS
@@ -33,7 +32,7 @@ def get_embeddings() -> GoogleGenerativeAIEmbeddings:
     )
 
 
-def load_pdf(file_path: str, source_name: str) -> List[Document]:
+def load_pdf(file_path: str, source_name: str) -> list[Document]:
     """Load one PDF into page-level Documents, tagged with the source name."""
     docs = PyPDFLoader(file_path).load()
     for doc in docs:
@@ -41,7 +40,7 @@ def load_pdf(file_path: str, source_name: str) -> List[Document]:
     return docs
 
 
-def load_pdf_bytes(data: bytes, source_name: str) -> List[Document]:
+def load_pdf_bytes(data: bytes, source_name: str) -> list[Document]:
     """Load a PDF from raw bytes (PyPDFLoader needs a real path → temp file)."""
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         tmp.write(data)
@@ -52,12 +51,12 @@ def load_pdf_bytes(data: bytes, source_name: str) -> List[Document]:
         os.unlink(tmp_path)
 
 
-def files_to_chunks(files: List[tuple[str, bytes]]) -> List[Document]:
+def files_to_chunks(files: list[tuple[str, bytes]]) -> list[Document]:
     """Core ingestion: (filename, bytes) pairs → page docs → chunks.
 
     Shared by the Streamlit UI and the API so both produce identical chunks.
     """
-    all_docs: List[Document] = []
+    all_docs: list[Document] = []
     for name, data in files:
         all_docs.extend(load_pdf_bytes(data, name))
 
@@ -70,7 +69,7 @@ def files_to_chunks(files: List[tuple[str, bytes]]) -> List[Document]:
     return chunks
 
 
-def split_documents(docs: List[Document]) -> List[Document]:
+def split_documents(docs: list[Document]) -> list[Document]:
     """Split page Documents into overlapping, semantically coherent chunks."""
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=settings.chunk_size,
@@ -84,7 +83,7 @@ def split_documents(docs: List[Document]) -> List[Document]:
     return chunks
 
 
-def pdfs_to_chunks(uploaded_files) -> List[Document]:
+def pdfs_to_chunks(uploaded_files) -> list[Document]:
     """Streamlit entry point: UploadedFile objects → chunks."""
     return files_to_chunks([(f.name, f.read()) for f in uploaded_files])
 

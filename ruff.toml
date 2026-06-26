@@ -1,0 +1,14 @@
+line-length = 100
+target-version = "py313"
+
+[lint]
+select = ["E", "F", "I", "UP", "B"]
+# Allow the intentional unused import in package __init__ files.
+ignore = ["E501"]  # long lines in prompts/docstrings are fine
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]
+# Eval scripts intentionally call warnings.filterwarnings() before imports.
+"eval/*.py" = ["E402"]
+# FastAPI's File(...) default is the idiomatic dependency-injection pattern.
+"api/main.py" = ["B008"]

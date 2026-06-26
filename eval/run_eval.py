@@ -25,14 +25,6 @@ warnings.filterwarnings("ignore")
 
 import pandas as pd
 from langchain_google_genai import ChatGoogleGenerativeAI
-
-from eval.sample_corpus import CORPUS, EVAL_SET
-from rag.chain import build_chain
-from rag.config import settings
-from rag.ingestor import get_embeddings
-from rag.retriever import build_retriever, get_dense_retriever
-from rag.vectorstore import build_vectorstore
-
 from ragas import EvaluationDataset, evaluate
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.llms import LangchainLLMWrapper
@@ -43,6 +35,13 @@ from ragas.metrics import (
     ResponseRelevancy,
 )
 from ragas.run_config import RunConfig
+
+from eval.sample_corpus import CORPUS, EVAL_SET
+from rag.chain import build_chain
+from rag.config import settings
+from rag.ingestor import get_embeddings
+from rag.retriever import build_retriever, get_dense_retriever
+from rag.vectorstore import build_vectorstore
 
 INPUT_COLS = {"user_input", "retrieved_contexts", "response", "reference"}
 

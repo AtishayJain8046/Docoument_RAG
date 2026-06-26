@@ -13,7 +13,6 @@ half of hybrid search) indexes the raw chunks in memory.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List
 
 from langchain_core.documents import Document
 
@@ -27,10 +26,10 @@ from rag.vectorstore import build_vectorstore
 class RagIndex:
     """An ingested document set: the vector store plus its raw chunks."""
     vectorstore: object
-    chunks: List[Document]
+    chunks: list[Document]
 
 
-def _index_from_chunks(chunks: List[Document]) -> RagIndex:
+def _index_from_chunks(chunks: list[Document]) -> RagIndex:
     return RagIndex(vectorstore=build_vectorstore(chunks), chunks=chunks)
 
 

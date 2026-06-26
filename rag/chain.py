@@ -8,16 +8,15 @@ RAG pipeline step: Query + History → Retriever → LLM → Answer
 Built entirely from langchain_core runnables — no deprecated langchain.chains needed.
 """
 
-from typing import Iterator, List, Tuple
+from collections.abc import Iterator
 
-from langchain_google_genai import GoogleGenerativeAI
+from langchain_core.documents import Document
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableLambda
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.documents import Document
+from langchain_google_genai import GoogleGenerativeAI
 
 from rag.config import settings
-
 
 # ── Prompts ───────────────────────────────────────────────────────────────────
 
@@ -48,7 +47,7 @@ QA_PROMPT = ChatPromptTemplate.from_messages([
 ])
 
 
-def format_docs(docs: List[Document]) -> str:
+def format_docs(docs: list[Document]) -> str:
     """Concatenate document chunks into a single context string."""
     return "\n\n".join(
         f"[Page {doc.metadata.get('page', '?')} | {doc.metadata.get('source', '')}]\n{doc.page_content}"
@@ -72,7 +71,7 @@ def standalone_question(llm, inputs: dict) -> str:
     return inputs["input"]
 
 
-def _qa_payload(inputs: dict, docs: List[Document]) -> dict:
+def _qa_payload(inputs: dict, docs: list[Document]) -> dict:
     return {
         "context": format_docs(docs),
         "input": inputs["input"],
@@ -103,7 +102,7 @@ def build_chain(retriever, model_name: str | None = None):
 
 def stream_answer(
     retriever, inputs: dict, model_name: str | None = None
-) -> Tuple[List[Document], Iterator[str]]:
+) -> tuple[list[Document], Iterator[str]]:
     """
     Streaming variant for the API / SSE.
 

@@ -36,3 +36,7 @@ python-dotenv>=1.0
 ragas>=0.4
 datasets>=3.0
 tabulate>=0.9                       # markdown tables in the eval report
+
+# ── Dev / CI ──────────────────────────────────────────────────────────
+pytest>=8.0
+ruff>=0.6

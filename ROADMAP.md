@@ -58,10 +58,11 @@ Tracking the evolution from a basic RAG demo into a measurable, deployable, agen
 - [ ] Streamlit talks to the API (thin client)
 - [ ] LangSmith / Langfuse tracing (latency, cost, retrieval traces)
 
-## Phase 7 — Quality engineering
-- [ ] pytest: chunking, retrieval, mocked-LLM integration
-- [ ] GitHub Actions CI: ruff + tests
-- [ ] Live deploy to Hugging Face Spaces
+## Phase 7 — Quality engineering ✅ (deploy pending)
+- [x] pytest: chunking, retrieval, mocked-LLM API integration (9 tests, offline)
+- [x] GitHub Actions CI: ruff + tests (`.github/workflows/ci.yml`)
+- [x] ruff config; codebase lint-clean
+- [ ] Live deploy to Hugging Face Spaces (Phase 8)
 
 ## Phase 8 — Capstone (the "wow")
 - [ ] Agentic retrieval: query decomposition, multi-hop, retrieval routing

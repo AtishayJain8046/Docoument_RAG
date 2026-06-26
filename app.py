@@ -1,6 +1,6 @@
-import streamlit as st
-import os
 from pathlib import Path
+
+import streamlit as st
 from dotenv import load_dotenv
 
 from rag.pipeline import ingest, make_chain
@@ -287,10 +287,10 @@ chat_container = st.container()
 with chat_container:
     for msg in st.session_state.messages:
         if msg["role"] == "user":
-            st.markdown(f'<div class="role-label role-label-user">You</div>', unsafe_allow_html=True)
+            st.markdown('<div class="role-label role-label-user">You</div>', unsafe_allow_html=True)
             st.markdown(f'<div class="user-msg">{msg["content"]}</div>', unsafe_allow_html=True)
         else:
-            st.markdown(f'<div class="role-label">Assistant</div>', unsafe_allow_html=True)
+            st.markdown('<div class="role-label">Assistant</div>', unsafe_allow_html=True)
             st.markdown(f'<div class="bot-msg">{msg["content"]}</div>', unsafe_allow_html=True)
             if msg.get("sources"):
                 with st.expander("📎 Sources used", expanded=False):
