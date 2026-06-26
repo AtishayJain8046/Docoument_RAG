@@ -1,144 +1,158 @@
-# 📄 PDF ChatBot — RAG System with LangChain, FAISS & Streamlit
+# 📄 Document RAG — a measurable, production-shaped RAG system
 
-A production-ready **Retrieval-Augmented Generation (RAG)** chatbot that lets you upload PDFs and ask questions about them in natural language. Built with LangChain, FAISS, OpenAI, and Streamlit.
+Ask questions about your PDFs in natural language. Built as a **proper RAG
+product**, not a notebook demo: a typed core, a Qdrant vector store, hybrid
+retrieval with reranking, a **FastAPI** service with streaming, a Streamlit
+UI, an **evaluation harness with real numbers**, tests, and CI.
 
-> ✅ Great for resumes: demonstrates LLMs, vector databases, embeddings, and full-stack Python.
-
----
-
-## 🧠 What is RAG?
-
-RAG (Retrieval-Augmented Generation) is a technique where an LLM answers questions using **retrieved context** from your own documents — not just its training data.
-
-```
-PDF → Extract Text → Split into Chunks → Embed Chunks → Store in FAISS
-                                                              ↓
-User Question → Embed Question → Similarity Search → Top-K Chunks → LLM → Answer
-```
+> Stack: **Gemini** (LLM + embeddings) · **Qdrant** · **LangChain** ·
+> **FastAPI** · **Streamlit** · **RAGAS** · **pytest/ruff/GitHub Actions**
 
 ---
 
-## 🏗 Architecture
+## Why this isn't just another PDF chatbot
 
-```
-pdf_chatbot/
-├── app.py              # Streamlit UI + session management
-├── rag/
-│   ├── ingestor.py     # PDF loading, text splitting, FAISS indexing
-│   ├── retriever.py    # FAISS similarity search wrapper
-│   └── chain.py        # Conversational RAG chain (LangChain)
-├── requirements.txt
-├── .env.example
-└── README.md
-```
-
-### Component Breakdown
-
-| File | Responsibility | Key Concepts |
-|---|---|---|
-| `ingestor.py` | Load PDFs → split → embed → FAISS | `PyPDFLoader`, `RecursiveCharacterTextSplitter`, `OpenAIEmbeddings` |
-| `retriever.py` | Query → top-K similar chunks | `FAISS.as_retriever`, cosine similarity |
-| `chain.py` | Conversational Q&A with history | `create_retrieval_chain`, `history_aware_retriever` |
-| `app.py` | UI, file upload, session state | Streamlit, session management |
+| Most demos | This project |
+|---|---|
+| One `app.py`, everything inline | Typed core (`rag/`), API (`api/`), eval (`eval/`), tests (`tests/`) |
+| Naive top-k vector search | **Hybrid** (BM25 + dense) + **cross-encoder reranking** |
+| In-memory FAISS, lost on restart | **Qdrant** (embedded for dev, server for prod) |
+| "It works on my machine" | **Eval harness** that measures retrieval quality with numbers |
+| Streamlit only | **FastAPI** service (`/ingest`, `/chat`, SSE streaming) + UI |
+| No tests | Offline **pytest** suite + **CI** (ruff + tests) |
 
 ---
 
-## 🚀 Quick Start
+## Architecture
 
-### 1. Clone & set up environment
+```
+                     ┌──────────────┐      ┌──────────────┐
+   PDFs ──▶ ingest ─▶│  chunk +     │─────▶│   Qdrant     │
+                     │  embed       │      │ (vectors)    │
+                     └──────────────┘      └──────┬───────┘
+                                                  │
+   question ──▶ ┌─────────────────────────────────▼─────────────┐
+                │  Hybrid retrieval: BM25 (keyword) + dense       │
+                │  → cross-encoder rerank → top-k chunks          │
+                └─────────────────────────┬───────────────────────┘
+                                          ▼
+                          Gemini LLM (grounded answer + sources)
+
+   Surfaces:  FastAPI  /ingest · /chat · /chat/stream (SSE) · /health
+              Streamlit chat UI
+```
+
+| Module | Responsibility |
+|---|---|
+| [`rag/config.py`](rag/config.py) | Typed settings (pydantic-settings) — models, chunking, retrieval, Qdrant |
+| [`rag/ingestor.py`](rag/ingestor.py) | PDF → pages → chunks (+ citation metadata) |
+| [`rag/vectorstore.py`](rag/vectorstore.py) | Qdrant — embedded (no Docker) or server mode |
+| [`rag/retriever.py`](rag/retriever.py) | Hybrid (BM25 + dense) ensemble → cross-encoder reranker |
+| [`rag/chain.py`](rag/chain.py) | Conversational RAG chain + streaming |
+| [`rag/pipeline.py`](rag/pipeline.py) | One entry point: ingest → index → retriever → chain |
+| [`api/main.py`](api/main.py) | FastAPI service with SSE streaming |
+| [`eval/`](eval/) | RAGAS + quota-free retrieval evaluation |
+
+---
+
+## 📊 Evaluation — with real numbers
+
+Retrieval quality is measured, not assumed. The
+[quota-free retrieval eval](eval/retrieval_eval.py) scores dense vs
+hybrid+rerank against a gold set built with confusable near-duplicates
+(a 40-SKU catalog) — see [`eval/retrieval_results.md`](eval/retrieval_results.md):
+
+| Embedder | Dense (MRR) | Hybrid + rerank (MRR) |
+|---|:--:|:--:|
+| Gemini `gemini-embedding-001` (3072-d) | **1.000** | 0.962 |
+| Local `all-MiniLM-L6-v2` (384-d) | 0.923 | **0.962** |
+
+**Honest finding:** a strong embedder already ranks answers first, so extra
+machinery adds little — but with a cheap/weak embedder, dense degrades and
+**hybrid + reranking recovers the lost ranking quality**. The eval lets you
+pick the retrieval stack to match the embedder instead of cargo-culting
+complexity. (A RAGAS *generation* eval — faithfulness/relevancy/grounding —
+is wired up in [`eval/run_eval.py`](eval/run_eval.py); it needs LLM quota
+beyond the Gemini free tier to run.)
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/pdf-chatbot-rag.git
-cd pdf-chatbot-rag
+python -m eval.retrieval_eval     # regenerate the table above
+```
 
-python -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
+---
 
+## 🚀 Quick start
+
+```bash
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env               # add your GOOGLE_API_KEY
 ```
 
-### 2. Configure API keys
+Get a free Gemini key at <https://aistudio.google.com/app/apikey>.
 
-```bash
-cp .env.example .env
-# Edit .env and add your API_KEY
-```
-
-### 3. Run
+**Streamlit UI** (embedded Qdrant, no Docker needed):
 
 ```bash
 streamlit run app.py
 ```
 
-Open http://localhost:8501 in your browser.
+**API** (interactive docs at <http://localhost:8000/docs>):
+
+```bash
+uvicorn api.main:app --reload
+```
+
+```bash
+# ingest a PDF, then chat against it
+curl -F "files=@paper.pdf" http://localhost:8000/ingest
+curl -X POST http://localhost:8000/chat \
+  -H 'content-type: application/json' \
+  -d '{"index_id":"<id from ingest>","question":"What is this about?"}'
+```
+
+**Qdrant server mode** (instead of embedded):
+
+```bash
+docker compose up -d              # starts Qdrant on :6333
+# then set QDRANT_EMBEDDED=false in .env
+```
 
 ---
 
-## 🔑 Environment Variables
+## 🔧 Configuration
 
-| Variable | Required | Description |
+All settings live in [`rag/config.py`](rag/config.py) and are env-overridable
+(see [`.env.example`](.env.example)). Highlights:
+
+| Variable | Default | Purpose |
 |---|---|---|
-| ` ANY API KEY ` | ✅ Yes | api-keys |
-| `LANGCHAIN_TRACING_V2` | ❌ No | Set `true` to enable LangSmith debugging |
-| `LANGCHAIN_API_KEY` | ❌ No | LangSmith key (free) for tracing |
+| `GOOGLE_API_KEY` | — | Gemini key (required) |
+| `LLM_MODEL` | `gemini-2.5-flash` | Answer model |
+| `EMBEDDING_MODEL` | `models/gemini-embedding-001` | Embeddings |
+| `QDRANT_EMBEDDED` | `true` | In-process Qdrant (set `false` for server) |
+| `USE_RERANKER` | `true` | Cross-encoder reranking |
+| `RERANKER_MODEL` | `ms-marco-MiniLM-L-6-v2` | Reranker (BGE optional) |
+| `RETRIEVAL_TOP_K` | `4` | Chunks fed to the LLM |
 
 ---
 
-## 🛠 How to Use
+## 🧪 Development
 
-1. **Upload PDFs** — Use the sidebar to upload one or more PDF files (research papers, books, contracts, etc.)
-2. **Ingest** — Click "⚡ Ingest" to extract text, split into chunks, and build the FAISS index
-3. **Chat** — Ask questions in natural language. The system retrieves relevant chunks and generates answers
-4. **View Sources** — Expand the "Sources used" section under each answer to see which document chunks were retrieved
+```bash
+ruff check .          # lint
+python -m pytest -q   # offline tests (no API key needed)
+```
 
----
-
-## 🧩 Key Technical Decisions
-
-### Why FAISS?
-- **Local** — no external database needed, runs entirely on your machine
-- **Fast** — Facebook's optimized similarity search library
-- **Persistent** — index can be saved/loaded from disk
-
-### Why `RecursiveCharacterTextSplitter`?
-Splits by paragraph → sentence → word in order, keeping semantically coherent chunks. The `chunk_overlap` ensures context isn't lost at boundaries.
-
-### Why `history_aware_retriever`?
-Without it, follow-up questions like "What did it say about that?" lose context. This component reformulates the question using chat history before retrieval.
-
-
-## 📈 Resume Talking Points
-
-- Built an end-to-end RAG pipeline using **LangChain** and **FAISS** vector database
-- Implemented **document chunking** with configurable overlap to preserve context at chunk boundaries
-- Used **OpenAI embeddings** (`text-embedding-3-small`) to represent document semantics in vector space
-- Built **conversational memory** with `create_history_aware_retriever` for multi-turn Q&A
-- Deployed an interactive UI with **Streamlit** supporting multi-file upload and real-time chat
+CI runs both on every push/PR ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 
 ---
 
-## 🔧 Extending the Project
+## 🗺 Roadmap
 
-Ideas to make it even more impressive:
-
-- **Persistent index**: call `vectorstore.save_local("faiss_index")` to persist across restarts
-- **Multiple namespaces**: separate FAISS indices per user/document set
-- **Reranking**: add a cross-encoder reranker after retrieval for better accuracy
-- **Evaluation**: use RAGAS to benchmark answer quality
-- **Deploy**: host on Streamlit Cloud (free) or Hugging Face Spaces
-
----
-
-## 📦 Dependencies
-
-- `streamlit` — UI framework
-- `langchain` + `langchain_google_genai` — LLM orchestration
-- `faiss-cpu` — vector similarity search
-- `pypdf` — PDF text extraction
-- `python-dotenv` — environment variable management
-- `tiktoken` — token counting for chunking
-
----
+See [ROADMAP.md](ROADMAP.md). Shipped: typed core, Qdrant, hybrid+rerank,
+eval harness, FastAPI + streaming, tests + CI. Next: observability tracing,
+Hugging Face Spaces deploy, and an agentic + multimodal capstone.
 
 ## License
 

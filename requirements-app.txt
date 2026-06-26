@@ -1,0 +1,24 @@
+# Lean runtime deps for the deployed Streamlit demo (embedded Qdrant).
+# Excludes eval/dev tooling (ragas, datasets, pytest, ruff) and the heavy
+# reranker stack (sentence-transformers/torch) — the deployed image runs
+# with USE_RERANKER=false, which the eval shows is sufficient with Gemini
+# embeddings. Use the full requirements.txt for development.
+
+langchain>=1.0
+langchain-core>=1.0
+langchain-community>=0.4
+langchain-text-splitters>=1.0
+
+langchain-google-genai>=4.0
+google-genai>=1.6
+
+qdrant-client>=1.14
+langchain-qdrant>=0.2
+rank-bm25>=0.2.2
+
+pypdf>=4.0
+
+streamlit>=1.55
+pydantic>=2.10
+pydantic-settings>=2.6
+python-dotenv>=1.0

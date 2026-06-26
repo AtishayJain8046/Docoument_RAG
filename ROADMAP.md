@@ -62,7 +62,9 @@ Tracking the evolution from a basic RAG demo into a measurable, deployable, agen
 - [x] pytest: chunking, retrieval, mocked-LLM API integration (9 tests, offline)
 - [x] GitHub Actions CI: ruff + tests (`.github/workflows/ci.yml`)
 - [x] ruff config; codebase lint-clean
-- [ ] Live deploy to Hugging Face Spaces (Phase 8)
+- [x] Dockerfile (slim, HF-Spaces-ready) + lean `requirements-app.txt`
+- [ ] Push image to Hugging Face Spaces (needs `docker build` — daemon was
+      off locally; config verified via offline tests)
 
 ## Phase 8 — Capstone (the "wow")
 - [ ] Agentic retrieval: query decomposition, multi-hop, retrieval routing

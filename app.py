@@ -221,7 +221,7 @@ if "chain" not in st.session_state:
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown('<div class="main-title">PDF Chat</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">RAG · FAISS · LangChain</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">RAG · Qdrant · Gemini</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="sidebar-section">Upload Documents</div>', unsafe_allow_html=True)
 
@@ -273,7 +273,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(
-        '<div style="font-family:\'DM Mono\',monospace;font-size:0.68rem;color:#3b4255;text-align:center;">Built with LangChain · FAISS · Streamlit</div>',
+        '<div style="font-family:\'DM Mono\',monospace;font-size:0.68rem;color:#3b4255;text-align:center;">Built with LangChain · Qdrant · Gemini</div>',
         unsafe_allow_html=True,
     )
 
