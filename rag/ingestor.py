@@ -41,6 +41,35 @@ def load_pdf(file_path: str, source_name: str) -> List[Document]:
     return docs
 
 
+def load_pdf_bytes(data: bytes, source_name: str) -> List[Document]:
+    """Load a PDF from raw bytes (PyPDFLoader needs a real path → temp file)."""
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(data)
+        tmp_path = tmp.name
+    try:
+        return load_pdf(tmp_path, source_name)
+    finally:
+        os.unlink(tmp_path)
+
+
+def files_to_chunks(files: List[tuple[str, bytes]]) -> List[Document]:
+    """Core ingestion: (filename, bytes) pairs → page docs → chunks.
+
+    Shared by the Streamlit UI and the API so both produce identical chunks.
+    """
+    all_docs: List[Document] = []
+    for name, data in files:
+        all_docs.extend(load_pdf_bytes(data, name))
+
+    if not all_docs:
+        raise ValueError("No content could be extracted from the uploaded PDFs.")
+
+    chunks = split_documents(all_docs)
+    if not chunks:
+        raise ValueError("Text splitting produced no chunks. Check your PDF content.")
+    return chunks
+
+
 def split_documents(docs: List[Document]) -> List[Document]:
     """Split page Documents into overlapping, semantically coherent chunks."""
     splitter = RecursiveCharacterTextSplitter(
@@ -56,29 +85,8 @@ def split_documents(docs: List[Document]) -> List[Document]:
 
 
 def pdfs_to_chunks(uploaded_files) -> List[Document]:
-    """
-    Takes Streamlit UploadedFile objects → temp files → loaded pages →
-    chunks. This is the store-agnostic part of ingestion; both the Qdrant
-    and the legacy FAISS paths build on it, and BM25 indexes the chunks too.
-    """
-    all_docs: List[Document] = []
-
-    for uploaded_file in uploaded_files:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            tmp.write(uploaded_file.read())
-            tmp_path = tmp.name
-        try:
-            all_docs.extend(load_pdf(tmp_path, uploaded_file.name))
-        finally:
-            os.unlink(tmp_path)
-
-    if not all_docs:
-        raise ValueError("No content could be extracted from the uploaded PDFs.")
-
-    chunks = split_documents(all_docs)
-    if not chunks:
-        raise ValueError("Text splitting produced no chunks. Check your PDF content.")
-    return chunks
+    """Streamlit entry point: UploadedFile objects → chunks."""
+    return files_to_chunks([(f.name, f.read()) for f in uploaded_files])
 
 
 def ingest_pdfs(uploaded_files) -> FAISS:

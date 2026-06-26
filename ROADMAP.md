@@ -47,10 +47,12 @@ Tracking the evolution from a basic RAG demo into a measurable, deployable, agen
       (20 req/day/model); run when quota resets or with a billed key.
 - [ ] Before/after tables in README (retrieval table ready; add RAGAS later)
 
-## Phase 5 — API layer
-- [ ] FastAPI service: `/ingest`, `/chat`, `/health`
-- [ ] SSE token streaming
-- [ ] Pydantic request/response models
+## Phase 5 — API layer ✅ DONE
+- [x] FastAPI service: `/ingest`, `/chat`, `/health` (+ `/docs`)
+- [x] SSE token streaming (`/chat/stream`)
+- [x] Pydantic request/response models
+- [x] `/health` + `/ingest` verified live (TestClient); `/chat` pending quota
+      (covered by mocked test in Phase 7)
 
 ## Phase 6 — UI + observability
 - [ ] Streamlit talks to the API (thin client)

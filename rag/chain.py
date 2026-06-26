@@ -8,11 +8,11 @@ RAG pipeline step: Query + History → Retriever → LLM → Answer
 Built entirely from langchain_core runnables — no deprecated langchain.chains needed.
 """
 
-from typing import List
+from typing import Iterator, List, Tuple
 
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from langchain_core.runnables import RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
 
@@ -56,6 +56,30 @@ def format_docs(docs: List[Document]) -> str:
     )
 
 
+def make_llm(model_name: str | None = None) -> GoogleGenerativeAI:
+    """Construct the Gemini LLM from config (overridable model name)."""
+    return GoogleGenerativeAI(
+        model=model_name or settings.llm_model,
+        temperature=settings.llm_temperature,
+        google_api_key=settings.google_api_key or None,
+    )
+
+
+def standalone_question(llm, inputs: dict) -> str:
+    """Rewrite a follow-up into a self-contained question using chat history."""
+    if inputs.get("chat_history"):
+        return (CONTEXTUALIZE_PROMPT | llm | StrOutputParser()).invoke(inputs)
+    return inputs["input"]
+
+
+def _qa_payload(inputs: dict, docs: List[Document]) -> dict:
+    return {
+        "context": format_docs(docs),
+        "input": inputs["input"],
+        "chat_history": inputs.get("chat_history", []),
+    }
+
+
 def build_chain(retriever, model_name: str | None = None):
     """
     Constructs the full conversational RAG chain using pure langchain_core runnables.
@@ -65,38 +89,30 @@ def build_chain(retriever, model_name: str | None = None):
     And returns:
         {"answer": "...", "context": [Document, ...]}
     """
-    llm = GoogleGenerativeAI(
-        model=model_name or settings.llm_model,
-        temperature=settings.llm_temperature,
-        google_api_key=settings.google_api_key or None,
-    )
+    llm = make_llm(model_name)
+    answer_chain = QA_PROMPT | llm | StrOutputParser()
 
-    # Step 1: Rewrite the question to be standalone (handles follow-ups)
-    contextualize_chain = CONTEXTUALIZE_PROMPT | llm | StrOutputParser()
-
-    def get_standalone_question(inputs: dict) -> str:
-        if inputs.get("chat_history"):
-            return contextualize_chain.invoke(inputs)
-        return inputs["input"]
-
-    # Step 2: Retrieve docs based on (possibly rewritten) question
-    def retrieve_docs(inputs: dict):
-        question = get_standalone_question(inputs)
-        docs = retriever.invoke(question)
-        return {"context": docs, "input": inputs["input"], "chat_history": inputs.get("chat_history", [])}
-
-    # Step 3: Generate answer from context
-    answer_chain = (
-        RunnablePassthrough.assign(context=lambda x: format_docs(x["context"]))
-        | QA_PROMPT
-        | llm
-        | StrOutputParser()
-    )
-
-    # Full chain: retrieve then answer, returning both answer and source docs
     def full_chain(inputs: dict) -> dict:
-        retrieved = retrieve_docs(inputs)
-        answer = answer_chain.invoke(retrieved)
-        return {"answer": answer, "context": retrieved["context"]}
+        question = standalone_question(llm, inputs)
+        docs = retriever.invoke(question)
+        answer = answer_chain.invoke(_qa_payload(inputs, docs))
+        return {"answer": answer, "context": docs}
 
     return RunnableLambda(full_chain)
+
+
+def stream_answer(
+    retriever, inputs: dict, model_name: str | None = None
+) -> Tuple[List[Document], Iterator[str]]:
+    """
+    Streaming variant for the API / SSE.
+
+    Retrieves first (so sources are known up front) and returns:
+        (source_documents, token_iterator)
+    where token_iterator yields answer chunks as they are generated.
+    """
+    llm = make_llm(model_name)
+    question = standalone_question(llm, inputs)
+    docs = retriever.invoke(question)
+    answer_chain = QA_PROMPT | llm | StrOutputParser()
+    return docs, answer_chain.stream(_qa_payload(inputs, docs))

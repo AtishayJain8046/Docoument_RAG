@@ -24,6 +24,7 @@ pymupdf>=1.24                        # page rendering for the multimodal path
 fastapi>=0.115
 uvicorn[standard]>=0.30
 sse-starlette>=2.1
+python-multipart>=0.0.9             # file uploads for /ingest
 streamlit>=1.55
 
 # ── Config / infra ────────────────────────────────────────────────────
