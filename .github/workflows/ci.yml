@@ -17,10 +17,13 @@ jobs:
           cache: pip
 
       - name: Install dependencies
+        # Lean install: runtime deps + API/test extras only. The offline test
+        # suite doesn't need the heavy eval/reranker stack (ragas, torch),
+        # so we skip it here to keep CI fast and reliable.
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install ruff pytest
+          pip install -r requirements-app.txt
+          pip install fastapi "uvicorn[standard]" sse-starlette python-multipart httpx pytest ruff
 
       - name: Lint (ruff)
         run: ruff check .
